@@ -1,0 +1,7 @@
+import { BadgeDollarSign, Plus } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
+
+export default function FinancialPage() {
+  return <><PageHeader eyebrow="Gestão financeira" title="Financeiro" description="Recebíveis, entradas, contas financeiras e visão de caixa em uma trilha auditável." action={<button className="button"><Plus aria-hidden="true" /> Novo lançamento</button>} /><section className="metric-grid"><article className="metric-card"><div className="metric-label">A receber</div><div className="metric-value">R$ 0</div><div className="metric-detail">0 parcelas pendentes</div></article><article className="metric-card magenta"><div className="metric-label">Vencido</div><div className="metric-value">R$ 0</div><div className="metric-detail">Nenhuma inadimplência</div></article><article className="metric-card"><div className="metric-label">Recebido no mês</div><div className="metric-value">R$ 0</div><div className="metric-detail">Período atual</div></article><article className="metric-card magenta"><div className="metric-label">Saldo registrado</div><div className="metric-value">R$ 0</div><div className="metric-detail">Sem contas configuradas</div></article></section><section className="panel panel-spaced"><EmptyState icon={BadgeDollarSign} title="Financeiro pronto para configuração" description="As contas a receber nascerão das condições da proposta aprovada. Configure as contas financeiras antes do primeiro recebimento." /></section></>;
+}
