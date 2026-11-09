@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getPublicSupabaseConfig } from "@/lib/supabase/config";
+import type { Database } from "@/lib/supabase/database.types";
 
 const protectedPrefixes = [
   "/dashboard",
@@ -38,7 +39,7 @@ export async function proxy(request: NextRequest) {
   }
 
   const pendingCookies: PendingCookie[] = [];
-  const supabase = createServerClient(config.url, config.publishableKey, {
+  const supabase = createServerClient<Database>(config.url, config.publishableKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();

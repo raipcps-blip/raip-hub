@@ -39,5 +39,6 @@ Empresas -> Contatos -> Oportunidades -> Propostas -> Aprovação
 
 - Interface responsiva e migration de fundação prontas.
 - Login, sessão SSR e proteção de rotas preparados para o Supabase exclusivo da RAIP.
+- Migration aplicada no projeto Supabase exclusivo da RAIP e tipos TypeScript gerados a partir do schema remoto.
 - Em desenvolvimento, a interface pode ser visualizada sem chaves; em produção, a ausência das variáveis do Supabase bloqueia o ERP.
-- As consultas reais serão ativadas depois do provisionamento do novo projeto e da aplicação da migration.
+- As consultas reais serão ativadas módulo a módulo sobre a camada de autorização e RLS já provisionada.
