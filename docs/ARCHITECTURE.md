@@ -27,6 +27,11 @@ Empresas -> Contatos -> Oportunidades -> Propostas -> Aprovação
 - Vercel como destino previsto de hospedagem.
 - Vitest para regras de domínio.
 
+### Fluxo de convites
+
+- Convites e recuperações usam `TokenHash` em `/auth/confirm`; a sessão SSR é persistida em cookies antes do redirecionamento.
+- Usuários convidados definem a senha em `/definir-senha`, que exige uma sessão Supabase válida.
+
 ## Identidade visual
 
 - Fundo padrão: `#000000`.

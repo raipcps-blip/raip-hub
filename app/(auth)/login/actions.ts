@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { safeInternalPath } from "@/lib/auth/redirect";
 import { getPublicSupabaseConfig } from "@/lib/supabase/config";
 import { createServerSupabaseClient } from "@/server/supabase/server";
 
@@ -12,11 +13,6 @@ const loginSchema = z.object({
 });
 
 export type LoginState = { message?: string; fieldErrors?: Record<string, string[]> };
-
-function safeNextPath(value?: string) {
-  if (!value?.startsWith("/") || value.startsWith("//")) return "/dashboard";
-  return value;
-}
 
 export async function login(_state: LoginState, formData: FormData): Promise<LoginState> {
   if (!getPublicSupabaseConfig()) {
@@ -40,5 +36,5 @@ export async function login(_state: LoginState, formData: FormData): Promise<Log
   });
 
   if (error) return { message: "E-mail ou senha inválidos." };
-  redirect(safeNextPath(result.data.next));
+  redirect(safeInternalPath(result.data.next, "/dashboard"));
 }

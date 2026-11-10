@@ -7,9 +7,9 @@ export const metadata: Metadata = { title: "Entrar" };
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; erro?: string }>;
 }) {
-  const { next } = await searchParams;
+  const { next, erro } = await searchParams;
 
   return (
     <section className="auth-card">
@@ -21,6 +21,11 @@ export default async function LoginPage({
       <p className="eyebrow">Acesso seguro</p>
       <h1>Bem-vindo de volta.</h1>
       <p className="auth-description">Entre com o usuário criado exclusivamente no Supabase da RAIP.</p>
+      {erro === "convite-invalido" ? (
+        <p className="form-message" role="alert">
+          Este convite expirou, já foi utilizado ou é inválido. Solicite um novo convite.
+        </p>
+      ) : null}
       <LoginForm nextPath={next} />
       <p className="auth-footnote">Ambiente independente · dados e credenciais não compartilhados</p>
     </section>

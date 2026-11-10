@@ -150,6 +150,7 @@ h1 { margin-bottom: 10px; font-size: clamp(30px, 4vw, 48px); line-height: 1; let
 .auth-form { display: grid; }
 .field-label { margin-bottom: 8px; color: var(--text-soft); font-size: 12px; font-weight: 700; }
 .form-control { width: 100%; min-height: 46px; padding: 0 13px; border: 1px solid var(--border-strong); border-radius: 10px; background: #020202; color: var(--white); }
+.field-hint { margin: 6px 0 0; color: #6f6f6f; font-size: 10px; }
 .field-error { min-height: 20px; margin: 6px 0 10px; color: #ff8cff; font-size: 11px; }
 .form-message { margin: 2px 0 16px; padding: 11px 12px; border: 1px solid rgb(255 0 255 / 30%); border-radius: 9px; color: var(--text-soft); font-size: 12px; line-height: 1.5; }
 .auth-submit { width: 100%; margin-top: 2px; }
