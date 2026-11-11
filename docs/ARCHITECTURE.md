@@ -30,6 +30,7 @@ Empresas -> Contatos -> Oportunidades -> Propostas -> Aprovação
 ### Fluxo de convites
 
 - Convites e recuperações usam `TokenHash` em `/auth/confirm`; a sessão SSR é persistida em cookies antes do redirecionamento.
+- Enquanto o projeto usar o e-mail padrão do Supabase, a raiz também aceita o retorno legado com tokens no fragmento, persiste a sessão em cookie e remove os tokens da URL antes de encaminhar o usuário.
 - Usuários convidados definem a senha em `/definir-senha`, que exige uma sessão Supabase válida.
 
 ## Identidade visual
