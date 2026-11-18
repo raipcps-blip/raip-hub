@@ -20,10 +20,25 @@ export default async function LoginPage({
       <div className="accent-rule" />
       <p className="eyebrow">Acesso seguro</p>
       <h1>Bem-vindo de volta.</h1>
-      <p className="auth-description">Entre com o usuário criado exclusivamente no Supabase da RAIP.</p>
+      <p className="auth-description">Entre com sua conta Google ou com o usuário exclusivo do Supabase da RAIP.</p>
       {erro === "convite-invalido" ? (
         <p className="form-message" role="alert">
           Este convite expirou, já foi utilizado ou é inválido. Solicite um novo convite.
+        </p>
+      ) : null}
+      {erro === "google-indisponivel" ? (
+        <p className="form-message" role="alert">
+          O acesso com Google ainda não está disponível. Verifique a configuração do provedor no Supabase da RAIP.
+        </p>
+      ) : null}
+      {erro === "google-falhou" ? (
+        <p className="form-message" role="alert">
+          Não foi possível concluir o acesso com Google. Tente novamente.
+        </p>
+      ) : null}
+      {erro === "acesso-nao-autorizado" ? (
+        <p className="form-message" role="alert">
+          Acesso não autorizado. Use uma conta previamente cadastrada no RAIP Hub.
         </p>
       ) : null}
       <LoginForm nextPath={next} />

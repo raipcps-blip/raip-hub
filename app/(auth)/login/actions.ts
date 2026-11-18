@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { safeInternalPath } from "@/lib/auth/redirect";
 import { getPublicSupabaseConfig } from "@/lib/supabase/config";
+import { getAppUrl } from "@/server/auth/app-url";
 import { createServerSupabaseClient } from "@/server/supabase/server";
 
 const loginSchema = z.object({
@@ -37,4 +38,27 @@ export async function login(_state: LoginState, formData: FormData): Promise<Log
 
   if (error) return { message: "E-mail ou senha inválidos." };
   redirect(safeInternalPath(result.data.next, "/dashboard"));
+}
+
+export async function loginWithGoogle(formData: FormData): Promise<void> {
+  if (!getPublicSupabaseConfig()) redirect("/configuration-required");
+
+  const requestedPath = safeInternalPath(
+    typeof formData.get("next") === "string" ? String(formData.get("next")) : undefined,
+    "/dashboard",
+  );
+  const callbackUrl = new URL("/auth/callback", getAppUrl());
+  callbackUrl.searchParams.set("next", requestedPath);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: callbackUrl.toString(),
+      skipBrowserRedirect: true,
+    },
+  });
+
+  if (error || !data.url) redirect("/login?erro=google-indisponivel");
+  redirect(data.url);
 }
