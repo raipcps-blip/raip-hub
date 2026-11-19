@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Search, UsersRound } from "lucide-react";
 import { CustomerCreateDialog } from "@/components/customers/customer-create-dialog";
+import { CustomerRowActions } from "@/components/customers/customer-row-actions";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { createServerSupabaseClient } from "@/server/supabase/server";
@@ -44,7 +45,7 @@ export default async function CustomersPage({
   const supabase = await createServerSupabaseClient();
   const { data: customerData } = await supabase
     .from("companies")
-    .select("id, customer_type, trade_name, tax_id, city, state, email, phone, whatsapp, archived_at")
+    .select("id, customer_type, trade_name, tax_id, email, phone, whatsapp, postal_code, street, street_number, address_complement, neighborhood, city, state, notes, archived_at")
     .is("archived_at", null)
     .order("created_at", { ascending: false });
 
@@ -72,7 +73,7 @@ export default async function CustomersPage({
       ) : (
         <div className="customer-table-wrap">
           <table className="customer-table">
-            <thead><tr><th>Nome</th><th>Documento</th><th>Tipo</th><th>Cidade/UF</th><th>Contato</th><th>Situação</th></tr></thead>
+            <thead><tr><th>Nome</th><th>Documento</th><th>Tipo</th><th>Cidade/UF</th><th>Contato</th><th>Situação</th><th>Ações</th></tr></thead>
             <tbody>{customers.map((customer) => (
               <tr key={customer.id}>
                 <td><strong>{customer.trade_name}</strong><span>{customer.email || "E-mail não informado"}</span></td>
@@ -81,6 +82,7 @@ export default async function CustomersPage({
                 <td>{[customer.city, customer.state].filter(Boolean).join(" / ") || "—"}</td>
                 <td>{customer.whatsapp || customer.phone || "—"}</td>
                 <td><span className="status-pill">Ativo</span></td>
+                <td><CustomerRowActions customer={customer} /></td>
               </tr>
             ))}</tbody>
           </table>

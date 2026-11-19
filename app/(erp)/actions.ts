@@ -9,7 +9,9 @@ import { createServerSupabaseClient } from "@/server/supabase/server";
 
 export type EntityActionState = {
   createdId?: string;
+  deletedId?: string;
   message?: string;
+  updatedId?: string;
 };
 
 const customerSchema = z.object({
@@ -113,20 +115,30 @@ async function writeAudit(
   entityId: string,
   after: Json,
 ) {
+  await writeAuditEntry("CREATE", entityType, entityId, null, after);
+}
+
+async function writeAuditEntry(
+  action: string,
+  entityType: string,
+  entityId: string,
+  before: Json | null,
+  after: Json | null,
+  reason?: string,
+) {
   const supabase = await createServerSupabaseClient();
   await supabase.rpc("write_audit_log", {
-    p_action: "CREATE",
+    p_action: action,
     p_entity_type: entityType,
     p_entity_id: entityId,
+    p_before: before,
     p_after: after,
+    p_reason: reason ?? undefined,
   });
 }
 
-export async function createCustomer(
-  _state: EntityActionState,
-  formData: FormData,
-): Promise<EntityActionState> {
-  const result = customerSchema.safeParse({
+function parseCustomerForm(formData: FormData) {
+  return customerSchema.safeParse({
     customerType: formData.get("customerType"),
     name: formData.get("name"),
     taxId: formData.get("taxId"),
@@ -142,6 +154,32 @@ export async function createCustomer(
     state: formData.get("state"),
     notes: formData.get("notes"),
   });
+}
+
+function customerDatabaseValues(values: z.infer<typeof customerSchema>) {
+  return {
+    customer_type: values.customerType,
+    trade_name: values.name,
+    tax_id: nullIfEmpty(values.taxId),
+    email: nullIfEmpty(values.email),
+    phone: nullIfEmpty(values.phone),
+    whatsapp: nullIfEmpty(values.whatsapp),
+    postal_code: nullIfEmpty(values.postalCode),
+    street: nullIfEmpty(values.street),
+    street_number: nullIfEmpty(values.streetNumber),
+    address_complement: nullIfEmpty(values.addressComplement),
+    neighborhood: nullIfEmpty(values.neighborhood),
+    city: nullIfEmpty(values.city),
+    state: nullIfEmpty(values.state)?.toUpperCase() ?? null,
+    notes: nullIfEmpty(values.notes),
+  };
+}
+
+export async function createCustomer(
+  _state: EntityActionState,
+  formData: FormData,
+): Promise<EntityActionState> {
+  const result = parseCustomerForm(formData);
 
   if (!result.success) return { message: result.error.issues[0]?.message ?? "Revise os dados." };
 
@@ -151,20 +189,7 @@ export async function createCustomer(
   const { data, error } = await supabase
     .from("companies")
     .insert({
-      customer_type: values.customerType,
-      trade_name: values.name,
-      tax_id: nullIfEmpty(values.taxId),
-      email: nullIfEmpty(values.email),
-      phone: nullIfEmpty(values.phone),
-      whatsapp: nullIfEmpty(values.whatsapp),
-      postal_code: nullIfEmpty(values.postalCode),
-      street: nullIfEmpty(values.street),
-      street_number: nullIfEmpty(values.streetNumber),
-      address_complement: nullIfEmpty(values.addressComplement),
-      neighborhood: nullIfEmpty(values.neighborhood),
-      city: nullIfEmpty(values.city),
-      state: nullIfEmpty(values.state)?.toUpperCase() ?? null,
-      notes: nullIfEmpty(values.notes),
+      ...customerDatabaseValues(values),
       owner_id: user.id,
       created_by: user.id,
       updated_by: user.id,
@@ -182,6 +207,91 @@ export async function createCustomer(
   revalidatePath("/empresas");
   revalidatePath("/oportunidades");
   return { createdId: data.id };
+}
+
+export async function updateCustomer(
+  customerId: string,
+  _state: EntityActionState,
+  formData: FormData,
+): Promise<EntityActionState> {
+  const idResult = z.string().uuid().safeParse(customerId);
+  if (!idResult.success) return { message: "Cliente inválido." };
+
+  const result = parseCustomerForm(formData);
+  if (!result.success) return { message: result.error.issues[0]?.message ?? "Revise os dados." };
+
+  const user = await requireAuthenticatedUser();
+  const supabase = await createServerSupabaseClient();
+  const { data: existing, error: existingError } = await supabase
+    .from("companies")
+    .select("id, customer_type, trade_name, tax_id, email, phone, whatsapp, postal_code, street, street_number, address_complement, neighborhood, city, state, notes")
+    .eq("id", idResult.data)
+    .is("archived_at", null)
+    .single();
+
+  if (existingError || !existing) return { message: "Cliente não encontrado ou já excluído." };
+
+  const { data, error } = await supabase
+    .from("companies")
+    .update({
+      ...customerDatabaseValues(result.data),
+      updated_at: new Date().toISOString(),
+      updated_by: user.id,
+    })
+    .eq("id", existing.id)
+    .is("archived_at", null)
+    .select("id, customer_type, trade_name, tax_id, email, phone, whatsapp, postal_code, street, street_number, address_complement, neighborhood, city, state, notes")
+    .single();
+
+  if (error || !data) {
+    const duplicate = error?.code === "23505";
+    return { message: duplicate ? "Já existe um cliente ativo com este CPF ou CNPJ." : "Não foi possível atualizar o cliente." };
+  }
+
+  await writeAuditEntry("UPDATE", "customer", data.id, existing, data);
+  revalidatePath("/clientes");
+  revalidatePath("/oportunidades");
+  revalidatePath("/propostas");
+  return { updatedId: data.id };
+}
+
+export async function deleteCustomer(
+  customerId: string,
+  state: EntityActionState,
+  formData: FormData,
+): Promise<EntityActionState> {
+  void state;
+  void formData;
+  const idResult = z.string().uuid().safeParse(customerId);
+  if (!idResult.success) return { message: "Cliente inválido." };
+
+  const user = await requireAuthenticatedUser();
+  const supabase = await createServerSupabaseClient();
+  const { data: existing, error: existingError } = await supabase
+    .from("companies")
+    .select("id, trade_name, tax_id")
+    .eq("id", idResult.data)
+    .is("archived_at", null)
+    .single();
+
+  if (existingError || !existing) return { message: "Cliente não encontrado ou já excluído." };
+
+  const archivedAt = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("companies")
+    .update({ archived_at: archivedAt, updated_at: archivedAt, updated_by: user.id })
+    .eq("id", existing.id)
+    .is("archived_at", null)
+    .select("id")
+    .single();
+
+  if (error || !data) return { message: "Não foi possível excluir o cliente." };
+
+  await writeAuditEntry("ARCHIVE", "customer", data.id, existing, { archived_at: archivedAt }, "Exclusão solicitada na tela de clientes");
+  revalidatePath("/clientes");
+  revalidatePath("/oportunidades");
+  revalidatePath("/propostas");
+  return { deletedId: data.id };
 }
 
 export async function createOpportunity(

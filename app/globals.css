@@ -90,12 +90,16 @@ h1 { margin-bottom: 10px; font-size: clamp(30px, 4vw, 48px); line-height: 1; let
 .button:hover { border-color: var(--cyan); background: rgb(255 255 255 / 4%); }
 .button.primary { border-color: var(--white); background: var(--white); color: var(--black); }
 .button.primary:hover { border-color: var(--cyan); background: #e9ffff; }
+.button.compact { min-height: 34px; padding: 0 11px; font-size: 11px; }
+.button.danger { border-color: rgb(255 0 255 / 52%); color: var(--magenta); background: transparent; }
+.button.danger:hover { border-color: var(--magenta); color: var(--white); background: rgb(255 0 255 / 7%); }
 .button svg { width: 16px; height: 16px; }
 .button:disabled { cursor: wait; opacity: 0.58; }
 .action-group { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
 
 .entity-dialog { width: min(680px, calc(100vw - 32px)); max-height: min(820px, calc(100vh - 32px)); padding: 0; border: 1px solid var(--border-strong); border-radius: 18px; background: #080808; color: var(--white); box-shadow: 0 28px 100px rgb(0 0 0 / 78%); overflow: auto; }
 .entity-dialog.customer-dialog { width: min(860px, calc(100vw - 32px)); }
+.entity-dialog.confirm-dialog { width: min(540px, calc(100vw - 32px)); }
 .entity-dialog::backdrop { background: rgb(0 0 0 / 76%); backdrop-filter: blur(5px); }
 .dialog-header { padding: 26px 26px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
 .dialog-header h2 { margin-bottom: 8px; font-size: 24px; }
@@ -186,6 +190,9 @@ h1 { margin-bottom: 10px; font-size: clamp(30px, 4vw, 48px); line-height: 1; let
 .customer-table td strong, .customer-table td span { display: block; }
 .customer-table td strong { color: var(--white); font-size: 13px; }
 .customer-table td strong + span { margin-top: 5px; color: #777; font-size: 10px; }
+.customer-actions { display: flex; align-items: center; gap: 8px; }
+.danger-eyebrow { color: var(--magenta); }
+.confirm-copy { margin-bottom: 0; padding: 13px 14px; border: 1px solid rgb(255 0 255 / 25%); border-radius: 10px; color: var(--text-muted); background: rgb(255 0 255 / 4%); font-size: 12px; line-height: 1.55; }
 .status-pill { width: max-content; padding: 6px 10px; border: 1px solid rgb(0 255 255 / 26%); border-radius: 999px; color: var(--cyan); background: rgb(0 255 255 / 5%); font-size: 10px !important; }
 .customer-no-results { min-height: 260px; padding: 36px; display: grid; align-content: center; justify-items: center; text-align: center; }
 .customer-no-results h2 { margin-bottom: 8px; font-size: 18px; }
