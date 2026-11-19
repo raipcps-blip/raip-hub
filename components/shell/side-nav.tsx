@@ -6,13 +6,12 @@ import { usePathname } from "next/navigation";
 import {
   BadgeDollarSign,
   BriefcaseBusiness,
-  Building2,
   ChartNoAxesCombined,
-  ContactRound,
   FileText,
   LayoutDashboard,
   Settings,
   Target,
+  UsersRound,
 } from "lucide-react";
 import type { ComponentType } from "react";
 
@@ -23,8 +22,7 @@ const groups: Array<{ label: string; entries: NavEntry[] }> = [
   {
     label: "Comercial",
     entries: [
-      { label: "Empresas", href: "/empresas", icon: Building2 },
-      { label: "Contatos", href: "/contatos", icon: ContactRound },
+      { label: "Clientes", href: "/clientes", icon: UsersRound },
       { label: "Oportunidades", href: "/oportunidades", icon: Target },
       { label: "Propostas", href: "/propostas", icon: FileText },
       { label: "Projetos", href: "/projetos", icon: BriefcaseBusiness },

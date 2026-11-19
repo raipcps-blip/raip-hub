@@ -12,17 +12,37 @@ export type EntityActionState = {
   message?: string;
 };
 
-const optionalText = z.string().trim().max(500).optional();
-
-const companySchema = z.object({
-  tradeName: z.string().trim().min(2, "Informe o nome da empresa.").max(160),
-  legalName: optionalText,
-  taxId: z.string().trim().max(30).optional(),
-  segment: z.string().trim().max(120).optional(),
+const customerSchema = z.object({
+  customerType: z.enum(["PF", "PJ"]),
+  name: z.string().trim().min(2, "Informe o nome do cliente.").max(160),
+  taxId: z.string().trim().min(1, "Informe o CPF ou CNPJ.").max(30),
   email: z.union([z.literal(""), z.string().email("Informe um e-mail válido.")]).optional(),
   phone: z.string().trim().max(30).optional(),
+  whatsapp: z.string().trim().max(30).optional(),
+  postalCode: z.string().trim().max(10).optional(),
+  street: z.string().trim().max(240).optional(),
+  streetNumber: z.string().trim().max(30).optional(),
+  addressComplement: z.string().trim().max(160).optional(),
+  neighborhood: z.string().trim().max(120).optional(),
   city: z.string().trim().max(120).optional(),
   state: z.union([z.literal(""), z.string().trim().length(2, "Use a sigla do estado.")]).optional(),
+  notes: z.string().trim().max(2000).optional(),
+}).superRefine((customer, context) => {
+  const document = customer.taxId.replace(/\D/g, "");
+  const expectedLength = customer.customerType === "PF" ? 11 : 14;
+
+  if (document.length !== expectedLength) {
+    context.addIssue({
+      code: "custom",
+      path: ["taxId"],
+      message: customer.customerType === "PF" ? "Informe um CPF com 11 dígitos." : "Informe um CNPJ com 14 dígitos.",
+    });
+  }
+
+  const postalCode = customer.postalCode?.replace(/\D/g, "") ?? "";
+  if (postalCode && postalCode.length !== 8) {
+    context.addIssue({ code: "custom", path: ["postalCode"], message: "Informe um CEP com 8 dígitos." });
+  }
 });
 
 const opportunitySchema = z.object({
@@ -102,19 +122,25 @@ async function writeAudit(
   });
 }
 
-export async function createCompany(
+export async function createCustomer(
   _state: EntityActionState,
   formData: FormData,
 ): Promise<EntityActionState> {
-  const result = companySchema.safeParse({
-    tradeName: formData.get("tradeName"),
-    legalName: formData.get("legalName"),
+  const result = customerSchema.safeParse({
+    customerType: formData.get("customerType"),
+    name: formData.get("name"),
     taxId: formData.get("taxId"),
-    segment: formData.get("segment"),
     email: formData.get("email"),
     phone: formData.get("phone"),
+    whatsapp: formData.get("whatsapp"),
+    postalCode: formData.get("postalCode"),
+    street: formData.get("street"),
+    streetNumber: formData.get("streetNumber"),
+    addressComplement: formData.get("addressComplement"),
+    neighborhood: formData.get("neighborhood"),
     city: formData.get("city"),
     state: formData.get("state"),
+    notes: formData.get("notes"),
   });
 
   if (!result.success) return { message: result.error.issues[0]?.message ?? "Revise os dados." };
@@ -125,14 +151,20 @@ export async function createCompany(
   const { data, error } = await supabase
     .from("companies")
     .insert({
-      trade_name: values.tradeName,
-      legal_name: nullIfEmpty(values.legalName),
+      customer_type: values.customerType,
+      trade_name: values.name,
       tax_id: nullIfEmpty(values.taxId),
-      segment: nullIfEmpty(values.segment),
       email: nullIfEmpty(values.email),
       phone: nullIfEmpty(values.phone),
+      whatsapp: nullIfEmpty(values.whatsapp),
+      postal_code: nullIfEmpty(values.postalCode),
+      street: nullIfEmpty(values.street),
+      street_number: nullIfEmpty(values.streetNumber),
+      address_complement: nullIfEmpty(values.addressComplement),
+      neighborhood: nullIfEmpty(values.neighborhood),
       city: nullIfEmpty(values.city),
       state: nullIfEmpty(values.state)?.toUpperCase() ?? null,
+      notes: nullIfEmpty(values.notes),
       owner_id: user.id,
       created_by: user.id,
       updated_by: user.id,
@@ -142,10 +174,11 @@ export async function createCompany(
 
   if (error || !data) {
     const duplicate = error?.code === "23505";
-    return { message: duplicate ? "Já existe uma empresa ativa com este CNPJ." : "Não foi possível cadastrar a empresa." };
+    return { message: duplicate ? "Já existe um cliente ativo com este CPF ou CNPJ." : "Não foi possível cadastrar o cliente." };
   }
 
-  await writeAudit("company", data.id, { trade_name: data.trade_name });
+  await writeAudit("customer", data.id, { trade_name: data.trade_name });
+  revalidatePath("/clientes");
   revalidatePath("/empresas");
   revalidatePath("/oportunidades");
   return { createdId: data.id };
