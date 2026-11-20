@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BadgeDollarSign,
-  BriefcaseBusiness,
   ChartNoAxesCombined,
   FileText,
   LayoutDashboard,
@@ -23,9 +22,8 @@ const groups: Array<{ label: string; entries: NavEntry[] }> = [
     label: "Comercial",
     entries: [
       { label: "Clientes", href: "/clientes", icon: UsersRound },
-      { label: "Oportunidades", href: "/oportunidades", icon: Target },
       { label: "Propostas", href: "/propostas", icon: FileText },
-      { label: "Projetos", href: "/projetos", icon: BriefcaseBusiness },
+      { label: "Oportunidades", href: "/oportunidades", icon: Target },
     ],
   },
   {
